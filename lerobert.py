@@ -15,6 +15,7 @@ class LeRobert(Dico):
     def get_lexemes_to_crawl_query(self):
         return '''SELECT DISTINCT ?lexeme ?lemma ?lexicalCategoryLabel (GROUP_CONCAT(?genderLabel_ ; separator=",") AS ?genderLabel) {
   ?lexeme dct:language wd:Q150 ; wikibase:lemma ?lemma ; wikibase:lexicalCategory ?lexicalCategory .
+  FILTER NOT EXISTS { ?lexeme wdt:P10338 [] }
   FILTER (?lexicalCategory != wd:Q147276) . # nom propre
   ?lexicalCategory rdfs:label ?lexicalCategoryLabel .
   FILTER(LANG(?lexicalCategoryLabel) = "fr") .
