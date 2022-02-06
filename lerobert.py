@@ -1,7 +1,5 @@
-import json
 import re
 import unidecode
-import utils
 
 from dico import Dico
 
@@ -12,11 +10,10 @@ class LeRobert(Dico):
         super().__init__(db)
 
     def get_property_id(self):
-        return 'P'
+        return 'P10338'
 
     def get_lexemes_to_crawl_query(self):
         return '''SELECT DISTINCT ?lexeme ?lemma ?lexicalCategoryLabel (GROUP_CONCAT(?genderLabel_ ; separator=",") AS ?genderLabel) {
-  # VALUES ?lexeme { wd:L641558 } .
   ?lexeme dct:language wd:Q150 ; wikibase:lemma ?lemma ; wikibase:lexicalCategory ?lexicalCategory .
   FILTER (?lexicalCategory != wd:Q147276) . # nom propre
   ?lexicalCategory rdfs:label ?lexicalCategoryLabel .
@@ -30,6 +27,9 @@ class LeRobert(Dico):
 GROUP BY ?lexeme ?lemma ?lexicalCategoryLabel
 LIMIT 100000
 '''
+
+    def get_url(self):
+        return 'https://dictionnaire.lerobert.com/definition/{}'
 
     def infer_id(self, lemma):
         return re.sub(r'[^a-z]', '-', unidecode.unidecode(lemma).lower())
@@ -62,5 +62,4 @@ LIMIT 100000
                     return True
                 if lexical_category == 'verbe' and lexcat_match in ('verbe intransitif', 'verbe pronominal', 'verbe transitif', 'verbe transitif indirect'):
                     return True
-        # print('{} : {}, {} - {}'.format(lemma, lexical_category, gender, valids))
         return False

@@ -19,3 +19,13 @@ class DB:
             row = self._cursor.fetchone()
             return {'status_code': row[0], 'headers': row[1], 'content': row[2]}
         return None
+
+    def save_history(self, entity_id, property_id, value):
+        data = (entity_id, property_id, value, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        self._cursor.execute('INSERT INTO `history`(`entity`, `property`, `value`, `date`) VALUES(%s, %s, %s, %s)', data)
+        self._cnx.commit()
+
+    def exists_history(self, entity_id, property_id):
+        self._cursor.execute('SELECT COUNT(*) AS `count` FROM `history` WHERE `entity` = %s AND `property` = %s', (entity_id, property_id))
+        row = self._cursor.fetchone()
+        return row[0] >= 1

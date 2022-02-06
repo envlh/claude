@@ -25,14 +25,13 @@ class Dico:
         return {'status_code': status_code, 'headers': headers, 'content': content}
 
     def get_or_fetch_by_id(self, inferred_id):
-        url = 'https://dictionnaire.lerobert.com/definition/{}'.format(inferred_id)
+        url = self.get_url().format(inferred_id)
         cache = self._db.get_url(url)
         if cache is not None:
             return cache
         return self.crawl_url(url)
 
     def process(self, lexeme):
-        lexeme_id = lexeme['lexeme']['value'][31:]
         lemma = lexeme['lemma']['value']
         lexical_category = lexeme['lexicalCategoryLabel']['value']
         gender = None
@@ -43,12 +42,15 @@ class Dico:
         success = False
         if r['status_code'] == 200 and self.is_matching(r['content'], lemma, lexical_category, gender):
             success = True
-        return success, lexeme_id, inferred_id
+        return success, inferred_id
 
     def get_property_id(self):
         raise NotImplementedError()
 
     def get_lexemes_to_crawl_query(self):
+        raise NotImplementedError()
+
+    def get_url(self):
         raise NotImplementedError()
 
     def infer_id(self, lemma):
