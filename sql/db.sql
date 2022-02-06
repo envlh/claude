@@ -10,7 +10,7 @@ CREATE TABLE `crawl` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `history` (
-  `id` bigint unsigned NOT NULL,
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `entity` varchar(16) NOT NULL,
   `property` varchar(16) NOT NULL,
   `value` varchar(128) NOT NULL,
