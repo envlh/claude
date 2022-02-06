@@ -7,14 +7,14 @@ from littre import Littre
 
 
 # https://www.wikidata.org/w/api.php?action=help&modules=wbcreateclaim&uselang=en
-def add_value(site, db, entity_id, property_id, value):
+def add_value(site, db, entity_id, property_id, value, edit_summary):
     request = {
         'action': 'wbcreateclaim',
         'entity': entity_id,
         'snaktype': 'value',
         'property': property_id,
         'value': value,
-        'summary': 'test',
+        'summary': edit_summary,
         'token': site.tokens['edit'],
         'bot': '1',
     }
@@ -40,7 +40,7 @@ def main():
         if not db.exists_history(lexeme_id, dico.get_property_id()):
             success, inferred_id = dico.process(lexeme)
             if success:
-                add_value(site, db, lexeme_id, dico.get_property_id(), '"{}"'.format(inferred_id))
+                add_value(site, db, lexeme_id, dico.get_property_id(), '"{}"'.format(inferred_id), dico.get_edit_summary())
                 success_count += 1
     print('lexemes: {}, success: {}'.format(len(lexemes), success_count))
 

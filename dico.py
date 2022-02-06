@@ -58,3 +58,6 @@ class Dico:
 
     def is_matching(self, content, lemma, lexical_category, gender):
         raise NotImplementedError()
+
+    def get_edit_summary(self):
+        raise NotImplementedError()

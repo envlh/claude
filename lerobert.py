@@ -63,3 +63,6 @@ LIMIT 100000
                 if lexical_category == 'verbe' and lexcat_match in ('verbe intransitif', 'verbe pronominal', 'verbe transitif', 'verbe transitif indirect'):
                     return True
         return False
+
+    def get_edit_summary(self):
+        return '[[:d:Wikidata:Requests for permissions/Bot/EnvlhBot 2|Le Robert import]]'

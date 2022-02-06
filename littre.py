@@ -50,3 +50,6 @@ LIMIT 10
                     return True
             print(lemma, lexical_category, gender, lem_match, lexcat_match)
         return False
+
+    def get_edit_summary(self):
+        return 'TODO'
