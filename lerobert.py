@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import re
 import unidecode
 
@@ -13,21 +14,24 @@ class LeRobert(Dico):
         return 'P10338'
 
     def get_lexemes_to_crawl_query(self):
-        return '''SELECT DISTINCT ?lexeme ?lemma ?lexicalCategoryLabel (GROUP_CONCAT(?genderLabel_ ; separator=",") AS ?genderLabel) {
-  ?lexeme dct:language wd:Q150 ; wikibase:lemma ?lemma ; wikibase:lexicalCategory ?lexicalCategory .
-  FILTER NOT EXISTS { ?lexeme wdt:P10338 [] }
+        date_modified_treshold = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%dT%H:%M:%S')
+        r = '''SELECT DISTINCT ?lexeme ?lemma ?lexicalCategoryLabel (GROUP_CONCAT(?genderLabel_ ; separator=",") AS ?genderLabel) {{
+  ?lexeme dct:language wd:Q150 ; wikibase:lemma ?lemma ; wikibase:lexicalCategory ?lexicalCategory ; schema:dateModified ?dateModified .
+  FILTER NOT EXISTS {{ ?lexeme wdt:P10338 [] }}
+  FILTER (?dateModified < "{}"^^xsd:dateTime) .
   FILTER (?lexicalCategory != wd:Q147276) . # nom propre
   ?lexicalCategory rdfs:label ?lexicalCategoryLabel .
   FILTER(LANG(?lexicalCategoryLabel) = "fr") .
-  OPTIONAL {
+  OPTIONAL {{
     ?lexeme wdt:P5185 ?gender .
     ?gender rdfs:label ?genderLabel_ .
     FILTER(LANG(?genderLabel_) = "fr")
-  }
-}
+  }}
+}}
 GROUP BY ?lexeme ?lemma ?lexicalCategoryLabel
 LIMIT 100000
 '''
+        return r.format(date_modified_treshold)
 
     def get_url(self):
         return 'https://dictionnaire.lerobert.com/definition/{}'
