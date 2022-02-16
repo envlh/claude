@@ -26,7 +26,7 @@ class Littre(Dico):
   }
 }
 GROUP BY ?lexeme ?lemma ?lexicalCategoryLabel
-LIMIT 10
+LIMIT 100000
 '''
 
     def get_url(self):
@@ -38,15 +38,21 @@ LIMIT 10
     def is_matching(self, content, lemma, lexical_category, gender):
         match = re.search(re.compile('<section class="definition"><h2>(.*?)</h2>.*?<div class="entete">.*?<b>(.*?)</b></div>', re.DOTALL), content)
         if match is not None:
-            lem_match = match.group(1)
-            lexcat_match = match.group(2)
+            lem_match = match.group(1).strip()
+            lexcat_match = match.group(2).strip()
             if lem_match == lemma:
                 if lexical_category == 'nom':
                     if gender == 'féminin' and lexcat_match == '<abbr title="substantif féminin">s. f.</abbr>':
                         return True
                     if gender == 'masculin' and lexcat_match == '<abbr title="substantif masculin">s. m.</abbr>':
                         return True
-                if lexical_category == 'verbe' and lexcat_match in ('<abbr title="verbe neutre, notion grammaticale désuete">v. n.</abbr>',):
+                    if gender == 'féminin,masculin' and lexcat_match == '<abbr title="substantif masculin et féminin">s. m. et f.</abbr>':
+                        return True
+                if lexical_category == 'verbe' and lexcat_match in ('<abbr title="verbe neutre, notion grammaticale désuete">v. n.</abbr>', '<abbr title="verbe transitif, anciennement appelé verbe actif">v. a.</abbr>'):
+                    return True
+                if lexical_category == 'adjectif' and lexcat_match == '<abbr title="adjectif">adj.</abbr>':
+                    return True
+                if lexical_category == 'adverbe' and lexcat_match == '<abbr title="adverbe">adv.</abbr>':
                     return True
             print(lemma, lexical_category, gender, lem_match, lexcat_match)
         return False
