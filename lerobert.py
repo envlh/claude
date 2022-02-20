@@ -37,7 +37,7 @@ LIMIT 100000
         return 'https://dictionnaire.lerobert.com/definition/{}'
 
     def infer_id(self, lemma):
-        return re.sub(r'[^a-z]', '-', unidecode.unidecode(lemma).lower())
+        return re.sub(r'[^a-z]', '-', unidecode.unidecode(lemma).lower()).strip().strip('-')
 
     def is_matching(self, content, lemma, lexical_category, gender):
         valids = set()
