@@ -38,10 +38,11 @@ class Dico:
         if 'genderLabel' in lexeme:
             gender = lexeme['genderLabel']['value']
         inferred_id = self.infer_id(lemma)
-        r = self.get_or_fetch_by_id(inferred_id)
         success = False
-        if r['status_code'] == 200 and self.is_matching(r['content'], lemma, lexical_category, gender):
-            success = True
+        if len(inferred_id) >= 1:
+            r = self.get_or_fetch_by_id(inferred_id)
+            if r['status_code'] == 200 and self.is_matching(r['content'], lemma, lexical_category, gender):
+                success = True
         return success, inferred_id
 
     def get_property_id(self):
