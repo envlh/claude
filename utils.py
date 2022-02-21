@@ -8,6 +8,11 @@ def file_get_contents(filename):
     return s
 
 
+def file_put_contents(filename, content):
+    with open(filename, 'w', encoding='UTF-8') as f:
+        f.write(content)
+
+
 def load_json_file(filename):
     return json.loads(file_get_contents(filename))
 
