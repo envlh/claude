@@ -63,6 +63,9 @@ def main():
             errors_string += '[' + dico.get_url().format(errors[lexeme_id]) + ' ' + errors[lexeme_id] + ']'
         errors_string += '\n'
     errors_string += '|}'
+    report_page = pywikibot.Page(site, 'User:EnvlhBot/Reports/{}'.format(dico.get_property_id()))
+    report_page.text = errors_string
+    # report_page.save('Report update for {}'.format(dico.get_edit_summary()))
     utils.file_put_contents('data/report_errors.txt', errors_string)
     print('lexemes: {}, success: {}'.format(len(lexemes), success_count))
 
