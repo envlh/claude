@@ -78,7 +78,7 @@ LIMIT 100000
         # print(lemma, lexical_category, gender, valids)
         return False
 
-    def get_id_from_302(self, r):
+    def get_id_from_redirect(self, r):
         redirect_id = json.loads(r['headers'])['location'][45:]
         if len(redirect_id) >= 1:
             return redirect_id

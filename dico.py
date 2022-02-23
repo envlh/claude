@@ -43,11 +43,11 @@ class Dico:
             r = self.get_or_fetch_by_id(inferred_id)
             if r['status_code'] == 200 and self.is_matching(r['content'], lemma, lexical_category, gender):
                 success = True
-            elif r['status_code'] == 302:
-                redirect_id = self.get_id_from_302(r)
+            elif r['status_code'] == 301 or r['status_code'] == 302:
+                redirect_id = self.get_id_from_redirect(r)
                 if redirect_id is not None:
-                    r_302 = self.get_or_fetch_by_id(redirect_id)
-                    if r_302['status_code'] == 200 and self.is_matching(r_302['content'], lemma, lexical_category, gender):
+                    r_redirect = self.get_or_fetch_by_id(redirect_id)
+                    if r_redirect['status_code'] == 200 and self.is_matching(r_redirect['content'], lemma, lexical_category, gender):
                         success = True
                     # print('{} → {} ({})'.format(inferred_id, redirect_id, success))
                     if success:
@@ -69,7 +69,7 @@ class Dico:
     def is_matching(self, content, lemma, lexical_category, gender):
         raise NotImplementedError()
 
-    def get_id_from_302(self, r):
+    def get_id_from_redirect(self, r):
         raise NotImplementedError()
 
     def get_edit_summary(self):
