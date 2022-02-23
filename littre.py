@@ -1,4 +1,6 @@
+import json
 import re
+import urllib.parse
 
 from dico import Dico
 
@@ -13,9 +15,12 @@ class Littre(Dico):
 
     def get_lexemes_to_crawl_query(self):
         return '''SELECT DISTINCT ?lexeme ?lemma ?lexicalCategoryLabel (GROUP_CONCAT(?genderLabel_ ; separator=",") AS ?genderLabel) {
-  # VALUES ?lexeme { wd:L19882 } .
-  ?lexeme dct:language wd:Q150 ; wikibase:lemma ?lemma ; wikibase:lexicalCategory ?lexicalCategory .
+  ?lexeme dct:language wd:Q150 ; wikibase:lemma ?lemma ; wikibase:lexicalCategory ?lexicalCategory ; schema:dateModified ?dateModified .
   FILTER NOT EXISTS { ?lexeme wdt:P7724 [] }
+  BIND((NOW() - "P2D"^^xsd:duration) AS ?dateLimit)
+  FILTER (?dateModified < ?dateLimit) .
+  FILTER (?lexicalCategory != wd:Q162940) . # diacritique
+  FILTER (?lexicalCategory != wd:Q9788) . # lettre
   FILTER (?lexicalCategory != wd:Q147276) . # nom propre
   ?lexicalCategory rdfs:label ?lexicalCategoryLabel .
   FILTER(LANG(?lexicalCategoryLabel) = "fr") .
@@ -33,10 +38,10 @@ LIMIT 100000
         return 'https://www.littre.org/definition/{}'
 
     def infer_id(self, lemma):
-        return lemma
+        return lemma.replace('œ', 'oe')
 
     def is_matching(self, content, lemma, lexical_category, gender):
-        match = re.search(re.compile('<section class="definition"><h2>(.*?)</h2>.*?<div class="entete">.*?<b>(.*?)</b></div>', re.DOTALL), content)
+        match = re.search(re.compile('<section class="definition"><h2(?: class="[a-z]*")?>(.*?)</h2>.*?<div class="entete">.*?<b>(.*?)</b>', re.DOTALL), content)
         if match is not None:
             lem_match = match.group(1).strip()
             lexcat_match = match.group(2).strip()
@@ -54,8 +59,15 @@ LIMIT 100000
                     return True
                 if lexical_category == 'adverbe' and lexcat_match == '<abbr title="adverbe">adv.</abbr>':
                     return True
-            print(lemma, lexical_category, gender, lem_match, lexcat_match)
+            # print(lemma, lexical_category, gender, lem_match, lexcat_match)
+        # print(lemma, lexical_category, gender, match)
         return False
 
+    def get_id_from_redirect(self, r):
+        redirect_id = urllib.parse.unquote(json.loads(r['headers'])['Location'][12:])
+        if len(redirect_id) >= 1:
+            return redirect_id
+        return None
+
     def get_edit_summary(self):
-        return 'TODO'
+        raise NotImplementedError()
