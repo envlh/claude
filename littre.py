@@ -15,10 +15,11 @@ class Littre(Dico):
 
     def get_lexemes_to_crawl_query(self):
         return '''SELECT DISTINCT ?lexeme ?lemma ?lexicalCategoryLabel (GROUP_CONCAT(?genderLabel_ ; separator=",") AS ?genderLabel) {
+  # VALUES ?lexeme { wd:L621228 } .
   ?lexeme dct:language wd:Q150 ; wikibase:lemma ?lemma ; wikibase:lexicalCategory ?lexicalCategory ; schema:dateModified ?dateModified .
   FILTER NOT EXISTS { ?lexeme wdt:P7724 [] }
   BIND((NOW() - "P2D"^^xsd:duration) AS ?dateLimit)
-  FILTER (?dateModified < ?dateLimit) .
+  # FILTER (?dateModified < ?dateLimit) .
   FILTER (?lexicalCategory != wd:Q162940) . # diacritique
   FILTER (?lexicalCategory != wd:Q9788) . # lettre
   FILTER (?lexicalCategory != wd:Q147276) . # nom propre
@@ -44,14 +45,21 @@ LIMIT 100000
         match = re.search(re.compile('<section class="definition"><h2(?: class="[a-z]*")?>(.*?)</h2>.*?<div class="entete">.*?<b>(.*?)</b>', re.DOTALL), content)
         if match is not None:
             lem_match = match.group(1).strip()
-            lexcat_match = match.group(2).strip()
-            if lem_match == lemma:
+            lemmas_match = lem_match.split(', ')
+            for i in range(1, len(lemmas_match)):
+                first_char = lemmas_match[i][:1]
+                position = lemmas_match[0].rfind(first_char)
+                lemmas_match[i] = lemmas_match[0][:position] + lemmas_match[i]
+            lexcat_match = match.group(2)
+            if lemma in lemmas_match:
                 if lexical_category == 'nom':
                     if gender == 'féminin' and lexcat_match == '<abbr title="substantif féminin">s. f.</abbr>':
                         return True
                     if gender == 'masculin' and lexcat_match == '<abbr title="substantif masculin">s. m.</abbr>':
                         return True
-                    if gender == 'féminin,masculin' and lexcat_match == '<abbr title="substantif masculin et féminin">s. m. et f.</abbr>':
+                    if gender in ('féminin,masculin', 'masculin,féminin') and lexcat_match == '<abbr title="substantif masculin et féminin">s. m. et f.</abbr>':
+                        return True
+                    if len(lemmas_match) == 2 and gender in ('féminin', 'masculin') and lexcat_match == '<abbr title="substantif masculin et féminin">s. m. et f.</abbr>':
                         return True
                 if lexical_category == 'verbe' and lexcat_match in ('<abbr title="verbe neutre, notion grammaticale désuete">v. n.</abbr>', '<abbr title="verbe transitif, anciennement appelé verbe actif">v. a.</abbr>'):
                     return True
