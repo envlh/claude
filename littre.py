@@ -78,4 +78,4 @@ LIMIT 100000
         return None
 
     def get_edit_summary(self):
-        raise NotImplementedError()
+        return '[[:d:Wikidata:Requests for permissions/Bot/EnvlhBot 3|French dictionaries import]]'
