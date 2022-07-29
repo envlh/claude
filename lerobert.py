@@ -50,7 +50,9 @@ LIMIT 100000
             h3_cleaned = re.sub(re.compile('<span class="d_sound_cont"><sound.*?sound></span>', re.DOTALL), '', h3_cleaned)
             # nom déposé
             h3_cleaned = re.sub(re.compile('<span class="d_etm">\\(nom déposé\\)</span>', re.DOTALL), '', h3_cleaned)
-            match = re.search(re.compile('^(.*?)<span class="d_cat">(.*)</span>', re.DOTALL), h3_cleaned)
+            # misc html
+            h3_cleaned = re.sub(re.compile('<span class="notBold">Définition de </span>', re.DOTALL), '', h3_cleaned)
+            match = re.search(re.compile('^(.*?)<span class="d_cat">(.*)</span>', re.DOTALL), h3_cleaned.strip(' \n\t'))
             if match is not None:
                 lem_matches = re.split('(?:, )|(?: <span class="d_mta">ou</span> )', match.group(1).strip())
                 lexcat_matches = re.split('(?:, )|(?: <span class="d_x">et</span> )', match.group(2).strip())
