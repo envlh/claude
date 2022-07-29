@@ -71,6 +71,8 @@ LIMIT 100000
                     return True
                 if lexical_category == 'verbe' and lexcat_match in ('verbe intransitif', 'verbe pronominal', 'verbe transitif', 'verbe transitif indirect'):
                     return True
+                if lexical_category == 'adverbe' and lexcat_match in ('adverbe', 'adverbe de temps'):
+                    return True
         nouns = list(filter(lambda x: x[1] == 'nom', valids))
         if lexical_category == 'nom' and len(nouns) == 2 and nouns[0][1] == 'nom' and nouns[1][1] == 'nom' and (lemma == nouns[0][0] or lemma == nouns[1][0]):
             # print(lemma, lexical_category, gender, valids, nouns)
