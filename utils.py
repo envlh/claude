@@ -18,4 +18,4 @@ def load_json_file(filename):
 
 
 def fetch_url(url):
-    return requests.get(url, headers={'User-Agent': 'wd-lex-dict-sync/0.1'}, allow_redirects=False)
+    return requests.get(url, headers={'User-Agent': 'claude/0.1'}, allow_redirects=False)
