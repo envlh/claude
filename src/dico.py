@@ -3,8 +3,25 @@ import time
 import urllib.parse
 import utils
 
+from candidate import Candidate
+
 
 class Dico:
+
+    ADJECTIVE = 'Q34698'
+    ADVERB = 'Q380057'
+    CONJUNCTION = 'Q36484'
+    INTERJECTION = 'Q83034'
+    LOCUTION_ADVERBIAL = 'Q5978303'
+    NOUN = 'Q1084'
+    PERSONAL_PRONOUN = 'Q468801'
+    PREPOSITION = 'Q4833830'
+    VERB = 'Q24905'
+
+    FEMININE = 'Q1775415'
+    MASCULINE = 'Q499327'
+
+    IGNORE = ''
 
     def __init__(self, db):
         self._db = db
@@ -33,26 +50,37 @@ class Dico:
 
     def process(self, lexeme):
         lemma = lexeme['lemma']['value']
-        lexical_category = lexeme['lexicalCategoryLabel']['value']
-        gender = None
-        if 'genderLabel' in lexeme:
-            gender = lexeme['genderLabel']['value']
+        lexical_category = lexeme['lexicalCategory']['value'][31:]
+        genders = set()
+        if 'genders' in lexeme:
+            for gender in lexeme['genders']['value'].split(','):
+                if gender != '':
+                    genders.add(gender[31:])
         inferred_id = self.infer_id(lemma)
+        origin = Candidate(inferred_id, lemma, lexical_category, genders)
         success = False
         if len(inferred_id) >= 1:
             r = self.get_or_fetch_by_id(inferred_id)
-            if r['status_code'] == 200 and self.is_matching(r['content'], lemma, lexical_category, gender):
-                success = True
-            elif r['status_code'] == 301 or r['status_code'] == 302:
-                redirect_id = self.get_id_from_redirect(r)
-                if redirect_id is not None:
-                    r_redirect = self.get_or_fetch_by_id(redirect_id)
-                    if r_redirect['status_code'] == 200 and self.is_matching(r_redirect['content'], lemma, lexical_category, gender):
-                        success = True
-                    # print('{} → {} ({})'.format(inferred_id, redirect_id, success))
-                    if success:
-                        inferred_id = redirect_id
+            if r['status_code'] == 200:
+                candidates = self.parse_content(r['content'], inferred_id)
+                matches = self.match(origin, candidates)
+                if len(matches) == 1:
+                    success = True
+                    inferred_id = matches.pop().parsed_id
+                else:
+                    print('origin     {}\ncandidates {}\nmatches    {}\n====='.format(origin, candidates, matches))
         return success, inferred_id
+
+    def match(self, origin, candidates):
+        matches = set()
+        for candidate in candidates:
+            if origin.lexical_category == self.NOUN:
+                if origin.lemma == candidate.lemma and origin.lexical_category == candidate.lexical_category and origin.genders == candidate.genders:
+                    matches.add(candidate)
+            else:
+                if origin.lemma == candidate.lemma and origin.lexical_category == candidate.lexical_category:
+                    matches.add(candidate)
+        return matches
 
     def get_property_id(self):
         raise NotImplementedError()
@@ -66,7 +94,10 @@ class Dico:
     def infer_id(self, lemma):
         raise NotImplementedError()
 
-    def is_matching(self, content, lemma, lexical_category, gender):
+    def is_matching(self, content, inferred_id, lemma, lexical_category, gender):
+        raise NotImplementedError()
+
+    def parse_content(self, content, inferred_id):
         raise NotImplementedError()
 
     def get_id_from_redirect(self, r):

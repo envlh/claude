@@ -8,6 +8,12 @@ def file_get_contents(filename):
     return s
 
 
+def load_set(filename):
+    with open(filename, 'r', encoding='UTF-8') as f:
+        s = f.readlines()
+    return set(s)
+
+
 def file_put_contents(filename, content):
     with open(filename, 'w', encoding='UTF-8') as f:
         f.write(content)

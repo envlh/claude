@@ -4,6 +4,7 @@ import utils
 from db import DB
 from lerobert import LeRobert
 from littre import Littre
+from tlfi import Tlfi
 
 
 # https://www.wikidata.org/w/api.php?action=help&modules=wbcreateclaim&uselang=en
@@ -32,7 +33,7 @@ def main():
     site = get_site()
     configuration = utils.load_json_file('conf/general.json')
     db = DB(configuration['database'])
-    dicos = [LeRobert(db), Littre(db)]
+    dicos = [Tlfi(db)]
     for dico in dicos:
         print('Processing {}...'.format(dico.get_property_id()))
         lexemes = dico.fetch_lexemes_to_crawl()
@@ -49,26 +50,8 @@ def main():
                 else:
                     errors[lexeme_id] = inferred_id
                     ref[lexeme_id] = lexeme
-        errors = dict(sorted(errors.items(), key=lambda item: item[1]))
-        errors_string = '{| class="wikitable sortable"\n! Lexeme\n! Lemma\n! Lexical category\n! Grammatical gender\n! Inferred ID\n'
-        for lexeme_id in errors:
-            errors_string += '|-\n'
-            errors_string += '| [[Lexeme:' + lexeme_id + '|' + lexeme_id + ']]\n'
-            errors_string += '| ' + ref[lexeme_id]['lemma']['value'] + '\n'
-            errors_string += '| ' + ref[lexeme_id]['lexicalCategoryLabel']['value'] + '\n'
-            errors_string += '| '
-            if 'genderLabel' in ref[lexeme_id]:
-                errors_string += ref[lexeme_id]['genderLabel']['value']
-            errors_string += '\n'
-            errors_string += '| '
-            if errors[lexeme_id] != '':
-                errors_string += '[' + dico.get_url().format(errors[lexeme_id]).replace(' ', '%20') + ' ' + errors[lexeme_id] + ']'
-            errors_string += '\n'
-        errors_string += '|}'
-        report_page = pywikibot.Page(site, 'User:EnvlhBot/Reports/{}'.format(dico.get_property_id()))
-        report_page.text = errors_string
-        # report_page.save('Report update for {}'.format(dico.get_edit_summary()))
-        utils.file_put_contents('data/report_errors.txt', errors_string)
+            else:
+                print('Lexeme {} previously imported, not trying again.'.format(lexeme_id))
         print('lexemes: {}, success: {}'.format(len(lexemes), success_count))
 
 
