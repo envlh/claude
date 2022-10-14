@@ -21,7 +21,8 @@ class Dico:
     FEMININE = 'Q1775415'
     MASCULINE = 'Q499327'
 
-    IGNORE = ''
+    IGNORE = 'IGNORE'
+    ACCEPT_ALL = 'ACCEPT_ALL'
 
     def __init__(self, db):
         self._db = db
@@ -75,7 +76,9 @@ class Dico:
     def match(self, origin, candidates):
         matches = set()
         for candidate in candidates:
-            if origin.lexical_category == self.NOUN:
+            if candidate.lexical_category == self.ACCEPT_ALL:
+                matches.add(candidate)
+            elif origin.lexical_category == self.NOUN:
                 if origin.lemma == candidate.lemma and origin.lexical_category == candidate.lexical_category and origin.genders == candidate.genders:
                     matches.add(candidate)
             else:
