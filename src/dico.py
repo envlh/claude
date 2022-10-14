@@ -25,6 +25,7 @@ class Dico:
 
     def __init__(self, db):
         self._db = db
+        self.unknown_lexical_categories = dict()
 
     def fetch_lexemes_to_crawl(self):
         query = self.get_lexemes_to_crawl_query()

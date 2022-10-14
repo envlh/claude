@@ -31,7 +31,7 @@ class Tlfi(Dico):
   OPTIONAL { ?lexeme wdt:P5185 ?gender }
 }
 GROUP BY ?lexeme ?lemma ?lexicalCategory
-LIMIT 1000
+LIMIT 100000
 '''
 
     def get_url(self):
@@ -144,7 +144,10 @@ LIMIT 1000
                 lexical_categories.add(self.NOUN)
                 genders.add(self.MASCULINE)
             else:
-                print('Unknown lexical category "{}" in {}'.format(matched_lexical_category, inferred_id))
+                if matched_lexical_category in self.unknown_lexical_categories:
+                    self.unknown_lexical_categories[matched_lexical_category] += 1
+                else:
+                    self.unknown_lexical_categories[matched_lexical_category] = 1
             for lemma in lemmas:
                 for lexical_category in lexical_categories:
                     candidates.add(Candidate(parsed_id, lemma, lexical_category, genders))

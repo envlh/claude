@@ -53,6 +53,7 @@ def main():
             else:
                 print('Lexeme {} previously imported, not trying again.'.format(lexeme_id))
         print('lexemes: {}, success: {}'.format(len(lexemes), success_count))
+        print(dico.unknown_lexical_categories)
 
 
 if __name__ == '__main__':

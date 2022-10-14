@@ -3,6 +3,7 @@ import re
 import unidecode
 
 from dico import Dico
+from candidate import Candidate
 
 
 class LeRobert(Dico):
@@ -14,7 +15,8 @@ class LeRobert(Dico):
         return 'P10338'
 
     def get_lexemes_to_crawl_query(self):
-        r = '''SELECT DISTINCT ?lexeme ?lemma ?lexicalCategoryLabel (GROUP_CONCAT(?genderLabel_ ; separator=",") AS ?genderLabel) {
+        r = '''SELECT DISTINCT ?lexeme ?lemma ?lexicalCategory (GROUP_CONCAT(?gender ; separator=",") AS ?genders) {
+  # VALUES ?lexeme { wd:L28311 } . # led
   ?lexeme dct:language wd:Q150 ; wikibase:lemma ?lemma ; wikibase:lexicalCategory ?lexicalCategory ; schema:dateModified ?dateModified .
   FILTER NOT EXISTS { ?lexeme wdt:P10338 [] }
   BIND((NOW() - "P2D"^^xsd:duration) AS ?dateLimit)
@@ -22,15 +24,9 @@ class LeRobert(Dico):
   FILTER (?lexicalCategory != wd:Q162940) . # diacritique
   FILTER (?lexicalCategory != wd:Q9788) . # lettre
   FILTER (?lexicalCategory != wd:Q147276) . # nom propre
-  ?lexicalCategory rdfs:label ?lexicalCategoryLabel .
-  FILTER(LANG(?lexicalCategoryLabel) = "fr") .
-  OPTIONAL {
-    ?lexeme wdt:P5185 ?gender .
-    ?gender rdfs:label ?genderLabel_ .
-    FILTER(LANG(?genderLabel_) = "fr")
-  }
+  OPTIONAL { ?lexeme wdt:P5185 ?gender }
 }
-GROUP BY ?lexeme ?lemma ?lexicalCategoryLabel
+GROUP BY ?lexeme ?lemma ?lexicalCategory
 LIMIT 100000
 '''
         return r
@@ -41,8 +37,8 @@ LIMIT 100000
     def infer_id(self, lemma):
         return re.sub(r'[^a-z]', '-', unidecode.unidecode(lemma).lower()).strip().strip('-')
 
-    def is_matching(self, content, lemma, lexical_category, gender):
-        valids = []
+    def parse_content(self, content, inferred_id):
+        candidates = set()
         for h3 in re.findall(re.compile('<h3>(.*?)</h3>', re.DOTALL), content):
             # multiple sounds
             h3_cleaned = re.sub(re.compile('<span class="d_sound_sep"> \\| </span>', re.DOTALL), '', h3)
@@ -52,35 +48,44 @@ LIMIT 100000
             h3_cleaned = re.sub(re.compile('<span class="d_etm">\\(nom déposé\\)</span>', re.DOTALL), '', h3_cleaned)
             # misc html
             h3_cleaned = re.sub(re.compile('<span class="notBold">Définition de </span>', re.DOTALL), '', h3_cleaned)
-            match = re.search(re.compile('^(.*?)<span class="d_cat">(.*)</span>', re.DOTALL), h3_cleaned.strip(' \n\t'))
+            match = re.search(re.compile('^(.*?)<span class="d_cat">(.*?)</span>', re.DOTALL), h3_cleaned.strip(' \n\t'))
             if match is not None:
-                lem_matches = re.split('(?:, )|(?: <span class="d_mta">ou</span> )', match.group(1).strip())
-                lexcat_matches = re.split('(?:, )|(?: <span class="d_x">et</span> )', match.group(2).strip())
-                for lem_match in lem_matches:
-                    for lexcat_match in lexcat_matches:
-                        v = (lem_match, lexcat_match)
-                        if v not in valids:
-                            valids.append(v)
-        for (lem_match, lexcat_match) in valids:
-            if lem_match == lemma:
-                if lexical_category != 'nom' and lexcat_match == lexical_category:
-                    return True
-                if lexical_category == 'numéral' and lexcat_match == 'adjectif numéral invariable':
-                    return True
-                if lexical_category == 'nom' and '{} {}'.format(lexical_category, gender) == lexcat_match:
-                    return True
-                if lexical_category == 'nom' and lexcat_match == 'nom' and (gender == 'féminin,masculin' or gender == 'masculin,féminin'):
-                    return True
-                if lexical_category == 'verbe' and lexcat_match in ('verbe intransitif', 'verbe pronominal', 'verbe transitif', 'verbe transitif indirect'):
-                    return True
-                if lexical_category == 'adverbe' and lexcat_match in ('adverbe', 'adverbe de temps'):
-                    return True
-        nouns = list(filter(lambda x: x[1] == 'nom', valids))
-        if lexical_category == 'nom' and len(nouns) == 2 and nouns[0][1] == 'nom' and nouns[1][1] == 'nom' and (lemma == nouns[0][0] or lemma == nouns[1][0]):
-            # print(lemma, lexical_category, gender, valids, nouns)
-            return True
-        # print(lemma, lexical_category, gender, valids)
-        return False
+                lexical_categories = set()
+                genders = set()
+                lemmas = set(re.split('(?:, )|(?: <span class="d_mta">ou</span> )', match.group(1).strip()))
+                matched_lexical_categories = re.split('(?:, )|(?: <span class="d_x">et</span> )', match.group(2).strip())
+                for matched_lexical_category in matched_lexical_categories:
+                    if matched_lexical_category in ('élément', 'symbole', 'nom'):
+                        lexical_categories.add(self.IGNORE)
+                    elif matched_lexical_category in ('adjectif', 'adjectif invariable'):
+                        lexical_categories.add(self.ADJECTIVE)
+                    elif matched_lexical_category in ('adverbe', 'adverbe de lieu', 'adverbe de négation'):
+                        lexical_categories.add(self.ADVERB)
+                    elif matched_lexical_category == 'conjonction':
+                        lexical_categories.add(self.CONJUNCTION)
+                    elif matched_lexical_category == 'interjection':
+                        lexical_categories.add(self.INTERJECTION)
+                    elif matched_lexical_category in ('pronom personnel', 'pronom personnel invariable', 'pronom personnel féminin', 'pronom personnel masculin'):
+                        lexical_categories.add(self.PERSONAL_PRONOUN)
+                    elif matched_lexical_category == 'locution adverbiale':
+                        lexical_categories.add(self.LOCUTION_ADVERBIAL)
+                    elif matched_lexical_category in ('nom féminin', 'nom féminin invariable', 'nom féminin pluriel'):
+                        lexical_categories.add(self.NOUN)
+                        genders.add(self.FEMININE)
+                    elif matched_lexical_category in ('nom masculin', 'nom masculin invariable', 'nom masculin pluriel'):
+                        lexical_categories.add(self.NOUN)
+                        genders.add(self.MASCULINE)
+                    elif matched_lexical_category in ('verbe', 'verbe impersonnel', 'verbe intransitif', 'verbe intransitif impersonnel', 'verbe pronominal', 'verbe transitif', 'verbe transitif indirect'):
+                        lexical_categories.add(self.VERB)
+                    else:
+                        if matched_lexical_category in self.unknown_lexical_categories:
+                            self.unknown_lexical_categories[matched_lexical_category] += 1
+                        else:
+                            self.unknown_lexical_categories[matched_lexical_category] = 1
+                for lemma in lemmas:
+                    for lexical_category in lexical_categories:
+                        candidates.add(Candidate(inferred_id, lemma, lexical_category, genders))
+        return candidates
 
     def get_id_from_redirect(self, r):
         redirect_id = json.loads(r['headers'])['location'][45:]
