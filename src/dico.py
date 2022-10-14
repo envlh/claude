@@ -94,9 +94,6 @@ class Dico:
     def infer_id(self, lemma):
         raise NotImplementedError()
 
-    def is_matching(self, content, inferred_id, lemma, lexical_category, gender):
-        raise NotImplementedError()
-
     def parse_content(self, content, inferred_id):
         raise NotImplementedError()
 

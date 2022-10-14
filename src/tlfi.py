@@ -40,10 +40,6 @@ LIMIT 1000
     def infer_id(self, lemma):
         return lemma.lower()
 
-    def is_matching(self, content, inferred_id, lemma, lexical_category, gender):
-        inferred_id = self.infer_id(lemma)
-        return 'sendRequest(5,\'/definition/{}//0\')'.format(inferred_id) in content and 'sendRequest(5,\'/definition/{}//1\')'.format(inferred_id) not in content
-
     def parse_content(self, content, inferred_id):
         candidates = set()
         matches = re.findall(r'<a href="#" onclick="return sendRequest\(5,\'/definition/(.*?)//([0-9]+)\'\);"><span>(.*?)(?:<sup>[0-9]+</sup>)?</span>(.*?)</a>', content)
