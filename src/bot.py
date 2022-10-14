@@ -5,6 +5,7 @@ from db import DB
 from lerobert import LeRobert
 from littre import Littre
 from tlfi import Tlfi
+from favereau_br import FavereauBR
 
 
 # https://www.wikidata.org/w/api.php?action=help&modules=wbcreateclaim&uselang=en
@@ -42,16 +43,17 @@ def main():
         ref = dict()
         for lexeme in lexemes:
             lexeme_id = lexeme['lexeme']['value'][31:]
-            if not db.exists_history(lexeme_id, dico.get_property_id()):
-                success, inferred_id = dico.process(lexeme)
-                if success:
-                    add_value(site, db, lexeme_id, dico.get_property_id(), inferred_id, dico.get_edit_summary())
-                    success_count += 1
-                else:
-                    errors[lexeme_id] = inferred_id
-                    ref[lexeme_id] = lexeme
+            if db.exists_history(lexeme_id, dico.get_property_id()):
+                print('Lexeme {} ({}) previously imported, not trying again.'.format(lexeme_id, lexeme['lemma']['value']))
+                continue
+            success, inferred_id = dico.process(lexeme)
+            if success:
+                add_value(site, db, lexeme_id, dico.get_property_id(), inferred_id, dico.get_edit_summary())
+                # print('{} {}'.format(lexeme_id, inferred_id))
+                success_count += 1
             else:
-                print('Lexeme {} previously imported, not trying again.'.format(lexeme_id))
+                errors[lexeme_id] = inferred_id
+                ref[lexeme_id] = lexeme
         print('lexemes: {}, success: {}'.format(len(lexemes), success_count))
         print(dico.unknown_lexical_categories)
 

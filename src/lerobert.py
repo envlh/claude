@@ -15,12 +15,12 @@ class LeRobert(Dico):
         return 'P10338'
 
     def get_lexemes_to_crawl_query(self):
-        r = '''SELECT DISTINCT ?lexeme ?lemma ?lexicalCategory (GROUP_CONCAT(?gender ; separator=",") AS ?genders) {
+        return '''SELECT DISTINCT ?lexeme ?lemma ?lexicalCategory (GROUP_CONCAT(?gender ; separator=",") AS ?genders) {
   # VALUES ?lexeme { wd:L28311 } . # led
   ?lexeme dct:language wd:Q150 ; wikibase:lemma ?lemma ; wikibase:lexicalCategory ?lexicalCategory ; schema:dateModified ?dateModified .
   FILTER NOT EXISTS { ?lexeme wdt:P10338 [] }
-  BIND((NOW() - "P2D"^^xsd:duration) AS ?dateLimit)
-  FILTER (?dateModified < ?dateLimit) .
+  # BIND((NOW() - "P2D"^^xsd:duration) AS ?dateLimit)
+  # FILTER (?dateModified < ?dateLimit) .
   FILTER (?lexicalCategory != wd:Q162940) . # diacritique
   FILTER (?lexicalCategory != wd:Q9788) . # lettre
   FILTER (?lexicalCategory != wd:Q147276) . # nom propre
@@ -29,7 +29,6 @@ class LeRobert(Dico):
 GROUP BY ?lexeme ?lemma ?lexicalCategory
 LIMIT 100000
 '''
-        return r
 
     def get_url(self):
         return 'https://dictionnaire.lerobert.com/definition/{}'
