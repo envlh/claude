@@ -26,6 +26,7 @@ class Dico:
 
     def __init__(self, db):
         self._db = db
+        self._last_query = 0
         self.unknown_lexical_categories = dict()
 
     def fetch_lexemes_to_crawl(self):
@@ -35,12 +36,18 @@ class Dico:
 
     def crawl_url(self, url):
         print(url)
+        # sleeping 10 secondes between each query on the same dictionary
+        now = int(time.time())
+        diff = now - self._last_query
+        if diff < 10:
+            time.sleep(10 - diff)
+        self._last_query = now
+        # crawl
         r = utils.fetch_url(url)
         status_code = r.status_code
         headers = json.dumps(dict(r.headers), ensure_ascii=False)
         content = r.text
         self._db.save_crawl(url, status_code, headers, content)
-        time.sleep(10)
         return {'status_code': status_code, 'headers': headers, 'content': content}
 
     def get_or_fetch_by_id(self, inferred_id):
