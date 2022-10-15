@@ -137,7 +137,7 @@ LIMIT 100000
                 genders.add(self.MASCULINE)
             elif matched_lexical_category in ('pron. pers.', 'pron. pers., 3epers., neutre sing., forme atone'):
                 lexical_categories.add(self.PERSONAL_PRONOUN)
-            elif matched_lexical_category in ('verbe', 'verbe.', 'verbe trans.', 'verbe trans. indir.', 'verbe intrans.', 'verbe intrans. et impers.', 'verbe pronom.', 'verbe (semi-)auxiliaire.', 'verbe auxil.', 'verbe substitut.', 'verbe trans. indir. et pronom.', 'verbe trans. et intrans.', 'verbe intrans. et trans.','verbe trans. et pronom.', 'verbe pronom. réfl.', 'verbe impers.', 'verbe trans. dir. et indir.', 'verbe intrans. et pronom.'):
+            elif matched_lexical_category in ('verbe', 'verbe.', 'verbe trans.', 'verbe trans. indir.', 'verbe intrans.', 'verbe intrans. et impers.', 'verbe pronom.', 'verbe (semi-)auxiliaire.', 'verbe auxil.', 'verbe substitut.', 'verbe trans. indir. et pronom.', 'verbe trans. et intrans.', 'verbe intrans. et trans.', 'verbe trans. et pronom.', 'verbe pronom. réfl.', 'verbe impers.', 'verbe trans. dir. et indir.', 'verbe intrans. et pronom.'):
                 lexical_categories.add(self.VERB)
             elif matched_lexical_category == 'verbe trans. et subst. masc.':
                 lexical_categories.add(self.VERB)

@@ -34,7 +34,7 @@ def main():
     site = get_site()
     configuration = utils.load_json_file('conf/general.json')
     db = DB(configuration['database'])
-    dicos = [Tlfi(db)]
+    dicos = [LeRobert(db), Littre(db), Tlfi(db), FavereauBR(db)]
     for dico in dicos:
         print('Processing {}...'.format(dico.get_property_id()))
         lexemes = dico.fetch_lexemes_to_crawl()
@@ -55,7 +55,7 @@ def main():
                 errors[lexeme_id] = inferred_id
                 ref[lexeme_id] = lexeme
         print('lexemes: {}, success: {}'.format(len(lexemes), success_count))
-        print(dico.unknown_lexical_categories)
+        # print(dico.unknown_lexical_categories)
 
 
 if __name__ == '__main__':

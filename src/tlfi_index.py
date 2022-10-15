@@ -18,7 +18,7 @@ class TlfiIndex(Dico):
     def infer_id(self, lemma):
         raise NotImplementedError()
 
-    def is_matching(self, content, lemma, lexical_category, gender):
+    def parse_content(self, content, inferred_id):
         raise NotImplementedError()
 
     def get_id_from_redirect(self, r):
