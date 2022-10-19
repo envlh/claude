@@ -1,5 +1,6 @@
 import json
 import requests
+import urllib.parse
 
 
 def file_get_contents(filename):
@@ -25,3 +26,8 @@ def load_json_file(filename):
 
 def fetch_url(url):
     return requests.get(url, headers={'User-Agent': 'claude/0.1'}, allow_redirects=False)
+
+
+def sparql_query(query):
+    url = 'https://query.wikidata.org/sparql?{}'.format(urllib.parse.urlencode({'query': query, 'format': 'json'}))
+    return json.loads(fetch_url(url).content)['results']['bindings']

@@ -1,6 +1,5 @@
 import json
 import time
-import urllib.parse
 import utils
 
 from candidate import Candidate
@@ -30,9 +29,7 @@ class Dico:
         self.unknown_lexical_categories = dict()
 
     def fetch_lexemes_to_crawl(self):
-        query = self.get_lexemes_to_crawl_query()
-        url = 'https://query.wikidata.org/sparql?{}'.format(urllib.parse.urlencode({'query': query, 'format': 'json'}))
-        return json.loads(utils.fetch_url(url).content)['results']['bindings']
+        return utils.sparql_query(self.get_lexemes_to_crawl_query())
 
     def crawl_url(self, url):
         print(url)
@@ -76,8 +73,6 @@ class Dico:
                 if len(matches) == 1:
                     success = True
                     inferred_id = matches.pop().parsed_id
-                else:
-                    print('origin     {}\ncandidates {}\nmatches    {}\n====='.format(origin, candidates, matches))
         return success, inferred_id
 
     def match(self, origin, candidates):

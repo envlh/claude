@@ -24,6 +24,19 @@ def add_value(site, db, entity_id, property_id, value, edit_summary):
     site._simple_request(**request).submit()
 
 
+def create_lexeme(site, lexeme, edit_summary):
+    request = {
+        'action': 'wbeditentity',
+        'format': 'json',
+        'new': 'lexeme',
+        'summary': edit_summary,
+        'token': site.tokens['edit'],
+        'bot': '1',
+        'data': lexeme,
+    }
+    site._simple_request(**request).submit()
+
+
 def get_site():
     site = pywikibot.Site('wikidata', 'wikidata')
     site.login()
