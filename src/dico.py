@@ -88,6 +88,12 @@ class Dico:
                     matches.add(candidate)
         return matches
 
+    def add_unknown_lexical_category(self, lexical_category):
+        if lexical_category in self.unknown_lexical_categories:
+            self.unknown_lexical_categories[lexical_category] += 1
+        else:
+            self.unknown_lexical_categories[lexical_category] = 1
+
     def get_property_id(self):
         raise NotImplementedError()
 

@@ -144,10 +144,7 @@ LIMIT 100000
                 lexical_categories.add(self.NOUN)
                 genders.add(self.MASCULINE)
             else:
-                if matched_lexical_category in self.unknown_lexical_categories:
-                    self.unknown_lexical_categories[matched_lexical_category] += 1
-                else:
-                    self.unknown_lexical_categories[matched_lexical_category] = 1
+                self.add_unknown_lexical_category(matched_lexical_category)
             for lemma in lemmas:
                 for lexical_category in lexical_categories:
                     candidates.add(Candidate(parsed_id, lemma, lexical_category, genders))
