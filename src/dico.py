@@ -72,6 +72,10 @@ class Dico:
         success = False
         if len(inferred_id) >= 1:
             r = self.get_or_fetch_by_id(inferred_id)
+            if r['status_code'] in (301, 302):
+                inferred_id = self.get_id_from_redirect(r)
+                if inferred_id is not None:
+                    r = self.get_or_fetch_by_id(inferred_id)
             if r['status_code'] == 200:
                 candidates = self.parse_content(r['content'], inferred_id)
                 matches = self.match(origin, candidates)
