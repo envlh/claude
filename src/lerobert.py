@@ -8,8 +8,8 @@ from candidate import Candidate
 
 class LeRobert(Dico):
 
-    def __init__(self, db):
-        super().__init__(db)
+    def __init__(self, db, offline=False):
+        super().__init__(db, offline)
 
     def get_property_id(self):
         return 'P10338'

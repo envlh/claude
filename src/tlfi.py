@@ -6,8 +6,8 @@ from candidate import Candidate
 
 class Tlfi(Dico):
 
-    def __init__(self, db):
-        super().__init__(db)
+    def __init__(self, db, offline=False):
+        super().__init__(db, offline)
 
     def get_property_id(self):
         return 'P7722'
