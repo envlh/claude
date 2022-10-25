@@ -2,6 +2,7 @@ import pywikibot
 import utils
 
 from db import DB
+from larousse import Larousse
 from lerobert import LeRobert
 from littre import Littre
 from tlfi import Tlfi
@@ -47,7 +48,7 @@ def main():
     site = get_site()
     configuration = utils.load_json_file('conf/general.json')
     db = DB(configuration['database'])
-    dicos = [LeRobert(db), Littre(db), Tlfi(db), FavereauBR(db)]
+    dicos = [LeRobert(db), Littre(db), Tlfi(db), FavereauBR(db), Larousse(db)]
     for dico in dicos:
         print('Processing {}...'.format(dico.get_property_id()))
         lexemes = dico.fetch_lexemes_to_crawl()
