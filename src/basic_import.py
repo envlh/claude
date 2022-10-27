@@ -5,6 +5,7 @@ import string
 import utils
 
 from db import DB
+from larousse import Larousse
 from lerobert import LeRobert
 from littre import Littre
 from tlfi import Tlfi
@@ -15,7 +16,7 @@ def main():
     configuration = utils.load_json_file('conf/general.json')
     db = DB(configuration['database'])
     index = TlfiIndex(db)
-    dicos = [LeRobert(db), Littre(db), Tlfi(db)]
+    dicos = [Larousse(db), LeRobert(db), Littre(db), Tlfi(db)]
     existing = set()
     lemmas = utils.sparql_query('SELECT DISTINCT (STR(?lemma) AS ?str) { [] dct:language wd:Q150 ; wikibase:lexicalCategory wd:Q24905 ; wikibase:lemma ?lemma }')
     for lemma in lemmas:
@@ -30,21 +31,24 @@ def main():
             if matches is not None:
                 for match in matches:
                     if match[-2:] in ('er', 'ir') and match[:3] != 'se ' and 'î' not in match and match not in existing:
-                        check = True
                         kept = {}
                         for dico in dicos:
                             inferred_id = dico.infer_id(match)
                             r = dico.get_or_fetch_by_id(inferred_id)
-                            candidates = dico.parse_content(r['content'], inferred_id)
-                            keep = set()
-                            for candidate in candidates:
-                                if candidate.lexical_category == dico.VERB:
-                                    keep.add(candidate)
-                            if len(keep) != 1:
-                                check = False
-                                break
-                            kept[dico.get_property_id()] = keep.pop().parsed_id
-                        if check:
+                            if r['status_code'] in (301, 302):
+                                inferred_id = dico.get_id_from_redirect(r)
+                                if inferred_id is not None:
+                                    r = dico.get_or_fetch_by_id(inferred_id)
+                            if r['status_code'] == 200:
+                                keep = set()
+                                candidates = dico.parse_content(r['content'], inferred_id)
+                                for candidate in candidates:
+                                    if candidate.lemma == match and candidate.lexical_category == dico.VERB:
+                                        keep.add(candidate)
+                                if len(keep) == 1:
+                                    kept[dico.get_property_id()] = keep.pop().parsed_id
+                        if len(kept.keys()) >= 3:
+                            # print(match)
                             todo[match] = kept
             # next page
             match = re.search(re.compile('<a href="/(portailindex/[A-Z0-9/]+)"><img src="/images/portail/right.gif" title="Page suivante" border="0" width="32" height="32" alt="" /></a>', re.DOTALL), r_index['content'])
