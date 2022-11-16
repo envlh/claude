@@ -10,13 +10,13 @@ class Cordial(Dico):
         super().__init__(db, offline)
 
     def get_property_id(self):
-        return 'PPPPPP'
+        return 'P11178'
 
     def get_lexemes_to_crawl_query(self):
         return '''SELECT ?lexeme ?lemma ?lexicalCategory (GROUP_CONCAT(?gender ; separator=",") AS ?genders) {
   # VALUES ?lexeme { wd:L2330 } . # tour
   ?lexeme dct:language wd:Q150 ; wikibase:lemma ?lemma ; wikibase:lexicalCategory ?lexicalCategory ; schema:dateModified ?dateModified .
-  FILTER NOT EXISTS { ?lexeme wdt:P00000 [] }
+  FILTER NOT EXISTS { ?lexeme wdt:P11178 [] }
   # BIND((NOW() - "P2D"^^xsd:duration) AS ?dateLimit)
   # FILTER (?dateModified < ?dateLimit) .
   FILTER (?lexicalCategory != wd:Q162940) . # diacritique
